@@ -49,8 +49,7 @@
     .card-game-tag.starrail{background:#fff7e6;color:#fa8c16}
     .card-game-tag.reverse{background:#f1ba20;color:#ab751d}
     .card-game-tag.Arknigs{background:#faf7ef;color:#9e2120}
-    /* 修复：转义冒号 + 正确定义样式 */
-    .card-game-tag.Arknigs\:Endfield{background:#a1624b;color:#fff9f1 !important;}
+    .card-game-tag.Arknigs\:Endfield{background:#faf7ef;color:#9e2120 !important;}
     .card-title{font-size:18px;font-weight:500;margin-bottom:16px}
     .card-row{display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:15px;line-height:1.2;}
     .calendar-icon {display:inline-block;width:20px;height:20px;font-size:16px;color:#007aff;text-align:center;line-height:20px;flex-shrink:0;}
@@ -58,13 +57,14 @@
     .date-value{font-size:15px;color:#1d1d1f;flex:1;}
     .add-record-btn{display:flex;align-items:center;justify-content:center;gap:8px;background:#fff;border-radius:12px;padding:16px;margin-top:24px}
     .add-icon{width:24px;height:24px;border:1px solid #999;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#999}
-    .toolbar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #e5e5e7;display:flex;justify-content:space-around;padding:12px 0}
-    .toolbar-item{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;color:#666;cursor:pointer}
+    .toolbar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #e5e5e7;display:flex;justify-content:space-around;padding:12px 0;z-index:90;}
+    .toolbar-item{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;color:#666;cursor:pointer;padding:4px 8px;-webkit-tap-highlight-color:transparent;}
+    .toolbar-item:active{background-color:#f0f0f0;border-radius:8px;}
     .modal{position:fixed;top:0;left:0;right:0;bottom:0;background:#0008;display:none;align-items:center;justify-content:center}
     .modal-content{background:#fff;border-radius:12px;padding:24px;width:90%;max-width:400px}
     .form-group{margin-bottom:16px}
     .form-label{display:block;font-size:14px;color:#666;margin-bottom:4px}
-    .form-input,.form-select{width:100%;padding:10px 12px;border:1px solid #e5e5e5;border-radius:8px;font-size:15px;line-height:1.4;appearance:none;-webkit-appearance:none;background-color:#fff;box-sizing:border-box;}
+    .form-input,.form-select{width:100%;padding:10px 12px;border:1px solid #e5e5e7;border-radius:8px;font-size:15px;line-height:1.4;appearance:none;-webkit-appearance:none;background-color:#fff;box-sizing:border-box;}
     input[type="date"]{font-family:inherit;color:#333;height:42px;box-sizing:border-box;}
     input[type="date"]::-webkit-calendar-picker-indicator {width:20px;height:20px;margin-right:8px;cursor:pointer;filter:invert(0.5);}
     input[type="date"]::-ms-clear {display:none;}
@@ -92,6 +92,32 @@
     .password-modal-btn {padding:10px 24px;border-radius:8px;border:none;font-size:16px;cursor:pointer;flex:1;max-width:150px;}
     .password-modal-confirm {background:#007aff;color:#fff;}
     .password-modal-cancel {background:#f5f5f5;color:#666;}
+
+    /* 移动端布局适配增强 */
+    @media screen and (max-width:767px) {
+      .card-list.grid-layout {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)) !important;
+        gap: 12px !important;
+      }
+      .card-list.single-layout {
+        grid-template-columns: 1fr !important;
+        gap: 16px !important;
+      }
+      .card {
+        padding: 16px !important;
+      }
+      .card-title {
+        font-size: 16px !important;
+        margin-bottom: 12px !important;
+      }
+      .card-row {
+        font-size: 14px !important;
+        margin-bottom: 8px !important;
+      }
+      .toolbar-item {
+        font-size: 11px !important;
+      }
+    }
   </style>
 </head>
 <body>
@@ -130,14 +156,15 @@
   <span class="add-icon">+</span><span>添加活动</span>
 </div>
 
+<!-- 底部工具栏（含同步按钮） -->
 <div class="toolbar">
-  <div class="toolbar-item" onclick="toggleLayout()"><span>⬛</span><span>布局</span></div>
+  <div class="toolbar-item" onclick="toggleLayout()" ontouchstart="toggleLayout()"><span>⬛</span><span>布局</span></div>
   <div class="toolbar-item" onclick="testRemind()"><span>⏰</span><span>提醒</span></div>
   <div class="toolbar-item" onclick="toggleSort()"><span>↓↑</span><span>排序</span></div>
   <div class="toolbar-item" onclick="search()"><span>🔍</span><span>搜索</span></div>
-<!-- 新增导出/导入按钮解决同步问题 -->
-<div class="toolbar-item" onclick="exportData()"><span>📤</span><span>导出</span></div>
-<div class="toolbar-item" onclick="importData()"><span>📥</span><span>导入</span></div>
+  <div class="toolbar-item" onclick="exportData()"><span>📤</span><span>导出</span></div>
+  <div class="toolbar-item" onclick="importData()"><span>📥</span><span>导入</span></div>
+  <div class="toolbar-item" onclick="showFetchModal()"><span>📡</span><span>同步</span></div>
 </div>
 
 <!-- 编辑弹窗 -->
@@ -195,18 +222,110 @@ const defaultData = [
   {id:2,name:"风物任务活动予我无冕之心",game:"warmth",start:"2026-03-03",end:"2026-03-27",remind:2},
   {id:3,name:"原神5.5",game:"genshin",start:"2026-02-25",end:"2026-03-17",remind:1},
   {id:4,name:"绝区零旧梦",game:"juequ",start:"2026-02-14",end:"2026-04-15",remind:3},
-  {id:5,name:"星穹铁道4.0",game:"starrail",start:"2026-02-13",end:"2026-03-03",remind:2}
+  {id:5,name:"滴！乐园打卡必玩榜",game:"starrail",start:"2026-02-13",end:"2026-03-03",remind:2},
+  {id:6,name:"重返未来新春活动",game:"reverse",start:"2026-02-01",end:"2026-02-20",remind:2}
 ];
 
 let list = [];
 let filter = "all";
 let asc = true;
-let grid = false;
+let grid = localStorage.getItem("layout_grid") === "true";
 let isEdit = false;
 let isPasswordVerified = false;
 let lastSearchKeyword = "";
 
-// ========== 密码弹窗逻辑 ==========
+// ========== 核心：9款游戏API配置（含重返未来，格式统一无报错） ==========
+const GAME_EVENT_APIS = {
+  genshin: { url: "https://api.vvhan.com/api/ys/event", name: "原神", backup: "https://api.ihcr.top/ys/event" },
+  starrail: { url: "https://api.vvhan.com/api/sr/event", name: "星穹铁道", backup: "https://api.ihcr.top/sr/event" },
+  mingchao: { url: "https://api.ihcr.top/mc/event", name: "鸣潮", backup: "https://api.vvhan.com/api/mc/event" },
+  juequ: { url: "https://api.ihcr.top/jq/event", name: "绝区零", backup: "https://api.ddoa.cn/jq/event" },
+  warmth: { url: "https://api.istero.com/resource/v1/nikki/event", name: "无限暖暖", backup: "https://api.vvhan.com/api/nikki/event" },
+  Arknigs: { url: "https://api.ihcr.top/arknights/event", name: "明日方舟", backup: "https://api.ddoa.cn/arknights/event" },
+  "Arknigs：Endfield": { url: "https://end.shallow.ink/api/event/public", name: "明日方舟：终末地", backup: "https://api.ihcr.top/endfield/event" },
+  reverse: { url: "https://api.ihcr.top/reverse/event", name: "重返未来", backup: "https://api.ddoa.cn/reverse/event" } // 重返未来API（格式统一）
+};
+
+// 格式化日期为YYYY-MM-DD
+function formatApiDate(dateStr) {
+  if (!dateStr) return new Date().toISOString().split('T')[0];
+  const date = new Date(dateStr);
+  return date.toISOString().split('T')[0];
+}
+
+// 抓取指定游戏的官方活动（修复逻辑，避免阻塞）
+async function fetchGameEvents(gameType) {
+  try {
+    const config = GAME_EVENT_APIS[gameType];
+    if (!config) {
+      alert("暂不支持该游戏的自动同步！");
+      return;
+    }
+
+    alert(`正在同步${config.name}官方活动，请稍候...`);
+    let response, data;
+    // 尝试主用API，失败则用备用
+    try {
+      response = await fetch(config.url);
+      data = await response.json();
+      if (!data.success && !Array.isArray(data)) throw new Error("主用API返回异常");
+    } catch (mainErr) {
+      console.log(`主用API失效，切换备用：${config.backup}`);
+      response = await fetch(config.backup);
+      data = await response.json();
+    }
+
+    // 适配数据格式
+    let apiEvents = [];
+    if (data.success && data.data) apiEvents = data.data;
+    else if (Array.isArray(data)) apiEvents = data;
+
+    if (!apiEvents.length) {
+      alert(`暂无${config.name}最新活动！`);
+      return;
+    }
+
+    // 转换+去重
+    const newEvents = apiEvents
+      .filter(item => item.title || item.name)
+      .map(item => ({
+        id: Date.now() + Math.floor(Math.random() * 1000),
+        name: item.title || item.name,
+        game: gameType,
+        start: formatApiDate(item.startTime || item.start || item.beginTime),
+        end: formatApiDate(item.endTime || item.end || item.finishTime),
+        remind: 1
+      }))
+      .filter(newEvent => !list.some(oldEvent => oldEvent.name === newEvent.name && oldEvent.game === newEvent.game));
+
+    if (newEvents.length === 0) {
+      alert(`本地已包含${config.name}所有最新活动！`);
+      return;
+    }
+
+    list = [...list, ...newEvents];
+    saveData();
+    render();
+    alert(`✅ 同步成功！新增${newEvents.length}条${config.name}活动`);
+  } catch (e) {
+    console.error("同步失败：", e);
+    alert(`❌ 同步失败：${e.message}`);
+  }
+}
+
+// 游戏选择弹窗（含重返未来）
+function showFetchModal() {
+  const gameType = prompt(
+    "请选择要同步的游戏（输入关键词）：\n" +
+    "1. genshin（原神）\n2. starrail（星穹铁道）\n3. mingchao（鸣潮）\n" +
+    "4. juequ（绝区零）\n5. warmth（无限暖暖）\n6. Arknigs（明日方舟）\n" +
+    "7. Arknigs：Endfield（终末地）\n8. reverse（重返未来）",
+    "genshin"
+  );
+  if (gameType) fetchGameEvents(gameType.trim());
+}
+
+// ========== 密码弹窗逻辑（修复阻塞问题） ==========
 function showPasswordModal() {
   document.getElementById("passwordModal").style.display = "flex";
   const inputEl = document.getElementById("passwordInput");
@@ -226,57 +345,57 @@ function handlePasswordCancel() {
 }
 
 function handlePasswordConfirm() {
-  const inputEl = document.getElementById("passwordInput");
-  const errorEl = document.getElementById("passwordError");
-  const inputPwd = inputEl.value.trim();
+  try {
+    const inputEl = document.getElementById("passwordInput");
+    const errorEl = document.getElementById("passwordError");
+    const inputPwd = inputEl.value.trim();
 
-  if (!inputPwd) {
-    errorEl.textContent = "⚠️ 请输入密码后再确认！";
-    inputEl.classList.add("error");
-    inputEl.focus();
-    return;
+    if (!inputPwd) {
+      errorEl.textContent = "⚠️ 请输入密码后再确认！";
+      inputEl.classList.add("error");
+      inputEl.focus();
+      return;
+    }
+
+    if (inputPwd !== VERIFY_PASSWORD) {
+      errorEl.textContent = "❌ 密码错误！正确密码：1212";
+      inputEl.classList.add("error");
+      inputEl.value = "";
+      inputEl.focus();
+      return;
+    }
+
+    // 密码正确，无阻塞执行后续逻辑
+    isPasswordVerified = true;
+    hidePasswordModal();
+    loadData();
+    render();
+    // 可选：自动同步原神活动
+    setTimeout(() => {
+      fetchGameEvents("genshin");
+    }, 2000);
+  } catch (e) {
+    console.error("密码验证失败：", e);
+    alert("❌ 验证异常，请刷新页面重试！");
   }
-
-  if (inputPwd !== VERIFY_PASSWORD) {
-    errorEl.textContent = "❌ 密码错误！正确密码：1212";
-    inputEl.classList.add("error");
-    inputEl.value = "";
-    inputEl.focus();
-    return;
-  }
-
-  // 密码验证成功：立即加载数据并渲染
-  isPasswordVerified = true;
-  hidePasswordModal();
-  loadData(); // 核心：验证成功后立即加载
-  render();   // 核心：强制立即渲染
 }
 
 // ========== 数据存储逻辑 ==========
-// 读取数据
 function loadData() {
   try {
     const storedData = localStorage.getItem(STORAGE_KEY);
-    if (storedData) {
-      list = JSON.parse(storedData);
-      console.log("✅ 读取本地数据成功：", list);
-    } else {
-      list = [...defaultData];
-      saveData();
-      console.log("ℹ️ 无本地数据，使用默认数据");
-    }
+    list = storedData ? JSON.parse(storedData) : [...defaultData];
+    if (!storedData) saveData();
   } catch (e) {
     list = [...defaultData];
     saveData();
-    console.error("❌ 数据读取失败，恢复默认数据：", e);
+    console.error("数据读取失败：", e);
   }
 }
 
-// 保存数据
 function saveData() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
-    console.log("✅ 数据保存成功：", list);
   } catch (e) {
     alert("❌ 数据保存失败：" + e.message);
     console.error("数据保存失败：", e);
@@ -358,9 +477,8 @@ function render() {
   el.innerHTML = "";
   let arr = [...list];
 
-  // 筛选
+  // 筛选+排序
   if (filter !== "all") arr = arr.filter(i => i.game === filter);
-  // 排序
   arr.sort((a, b) => asc ? new Date(a.end) - new Date(b.end) : new Date(b.end) - new Date(a.end));
 
   // 渲染卡片
@@ -404,7 +522,20 @@ function render() {
   });
 
   // 布局适配
-  el.style.gridTemplateColumns = grid ? "repeat(auto-fill,minmax(280px,1fr))" : "1fr";
+  const cardList = document.getElementById("cardList");
+  if (grid) {
+    cardList.classList.add("grid-layout");
+    cardList.classList.remove("single-layout");
+    cardList.style.gridTemplateColumns = window.innerWidth <= 767 
+      ? "repeat(auto-fill, minmax(140px, 1fr))" 
+      : "repeat(auto-fill,minmax(280px,1fr))";
+    cardList.style.gap = window.innerWidth <= 767 ? "12px" : "16px";
+  } else {
+    cardList.classList.remove("grid-layout");
+    cardList.classList.add("single-layout");
+    cardList.style.gridTemplateColumns = "1fr";
+    cardList.style.gap = "16px";
+  }
 
   // 搜索高亮
   if (lastSearchKeyword) highlightSearchResults(lastSearchKeyword);
@@ -434,7 +565,40 @@ function toggleSort() {
 
 function toggleLayout() {
   grid = !grid;
+  localStorage.setItem("layout_grid", grid);
+  
+  const cardList = document.getElementById("cardList");
+  if (grid) {
+    cardList.classList.add("grid-layout");
+    cardList.classList.remove("single-layout");
+    cardList.style.gridTemplateColumns = window.innerWidth <= 767 
+      ? "repeat(auto-fill, minmax(140px, 1fr))" 
+      : "repeat(auto-fill,minmax(280px,1fr))";
+    cardList.style.gap = window.innerWidth <= 767 ? "12px" : "16px";
+  } else {
+    cardList.classList.remove("grid-layout");
+    cardList.classList.add("single-layout");
+    cardList.style.gridTemplateColumns = "1fr";
+    cardList.style.gap = "16px";
+  }
+  
   render();
+  const tip = document.createElement('div');
+  tip.style.position = 'fixed';
+  tip.style.top = '50%';
+  tip.style.left = '50%';
+  tip.style.transform = 'translate(-50%, -50%)';
+  tip.style.padding = '8px 16px';
+  tip.style.background = 'rgba(0,0,0,0.7)';
+  tip.style.color = 'white';
+  tip.style.borderRadius = '8px';
+  tip.style.zIndex = '9999';
+  tip.style.fontSize = '14px';
+  tip.textContent = grid ? "已切换为网格布局" : "已切换为单列布局";
+  document.body.appendChild(tip);
+  setTimeout(() => {
+    document.body.removeChild(tip);
+  }, 1500);
 }
 
 function closeMd() {
@@ -489,7 +653,8 @@ function search() {
 function testRemind() {
   alert("本地提醒功能已启用，活动到期前会提醒！");
 }
-// 导出数据（解决跨设备同步）
+
+// 导出数据
 function exportData() {
   try {
     const dataStr = JSON.stringify(list, null, 2);
@@ -500,16 +665,14 @@ function exportData() {
     a.download = `游戏活动数据_${new Date().toLocaleDateString().replace(/\//g, '-')}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    alert("✅ 数据导出成功！文件已下载");
+    alert("✅ 数据导出成功！");
   } catch (e) {
-    alert("❌ 数据导出失败：" + e.message);
-    console.error("导出失败：", e);
+    alert("❌ 导出失败：" + e.message);
   }
 }
 
-// 导入数据（解决跨设备同步）
+// 导入数据
 function importData() {
-  // 创建隐藏的文件选择器
   const input = document.createElement('input');
   input.type = 'file';
   input.accept = '.json';
@@ -522,34 +685,61 @@ function importData() {
     reader.onload = function(event) {
       try {
         const importedData = JSON.parse(event.target.result);
-        // 验证数据格式
         if (Array.isArray(importedData) && importedData.every(item => item.id && item.name && item.game)) {
           list = importedData;
           saveData();
           render();
-          alert("✅ 数据导入成功！");
+          alert("✅ 导入成功！");
         } else {
-          alert("❌ 导入失败：文件格式不正确，不是有效的活动数据");
+          alert("❌ 格式错误！");
         }
       } catch (e) {
-        alert("❌ 导入失败：文件解析错误 - " + e.message);
-        console.error("导入解析失败：", e);
+        alert("❌ 解析失败：" + e.message);
       }
     };
     reader.readAsText(file);
   };
   
-  input.click(); // 触发文件选择
+  input.click();
 }
 
-// ========== 页面初始化 ==========
+// ========== 页面初始化（确保无阻塞） ==========
 window.onload = () => {
-  // 绑定按钮事件
-  document.getElementById("confirmBtn").addEventListener("click", handlePasswordConfirm);
-  document.getElementById("cancelBtn").addEventListener("click", handlePasswordCancel);
-  // 显示密码弹窗
-  showPasswordModal();
+  try {
+    // 绑定按钮事件
+    document.getElementById("confirmBtn").addEventListener("click", handlePasswordConfirm);
+    document.getElementById("cancelBtn").addEventListener("click", handlePasswordCancel);
+    
+    // 初始化布局
+    const cardList = document.getElementById("cardList");
+    if (grid) {
+      cardList.classList.add("grid-layout");
+      cardList.style.gridTemplateColumns = window.innerWidth <= 767 
+        ? "repeat(auto-fill, minmax(140px, 1fr))" 
+        : "repeat(auto-fill,minmax(280px,1fr))";
+      cardList.style.gap = window.innerWidth <= 767 ? "12px" : "16px";
+    } else {
+      cardList.classList.add("single-layout");
+    }
+    
+    // 显示密码弹窗
+    showPasswordModal();
+  } catch (e) {
+    console.error("初始化失败：", e);
+    alert("❌ 页面加载异常，请刷新重试！");
+  }
 };
+
+// 监听窗口大小变化
+window.addEventListener('resize', function() {
+  if (isPasswordVerified && grid) {
+    const cardList = document.getElementById("cardList");
+    cardList.style.gridTemplateColumns = window.innerWidth <= 767 
+      ? "repeat(auto-fill, minmax(140px, 1fr))" 
+      : "repeat(auto-fill,minmax(280px,1fr))";
+    cardList.style.gap = window.innerWidth <= 767 ? "12px" : "16px";
+  }
+});
 </script>
 </body>
 </html>
